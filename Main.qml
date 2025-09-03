@@ -7,7 +7,7 @@ import AudioEngine 1.0
 ApplicationWindow {
     id: window
     width: 800
-    height: 600
+    height: 700
     visible: true
     title: "Hi-Res Music Player"
 
@@ -28,16 +28,45 @@ ApplicationWindow {
         // Header
         Text {
             Layout.alignment: Qt.AlignHCenter
-            text: "🎵 Hi-Res Music Player"
+            text: "Hi-Res Music Player"
             color: "white"
             font.pointSize: 24
             font.bold: true
         }
 
+        // Format Support Info
+        Rectangle {
+            Layout.fillWidth: true
+            height: 60
+            color: audioManager.isFfmpegAvailable ? "#27AE60" : "#E67E22"
+            radius: 8
+
+            RowLayout {
+                anchors.centerIn: parent
+                spacing: 10
+
+                Text {
+                    text: audioManager.isFfmpegAvailable ? "✓" : "!"
+                    color: "white"
+                    font.pointSize: 16
+                    font.bold: true
+                }
+
+                Text {
+                    text: audioManager.isFfmpegAvailable
+                        ? "Multi-format support enabled (MP3, FLAC, M4A, AAC, AC3, AIF, ALAC, OGG, Opus, WMA, etc.)"
+                        : "Limited to WAV only - Install FFmpeg for more formats"
+                    color: "white"
+                    font.pointSize: 12
+                    font.bold: true
+                }
+            }
+        }
+
         // Current file info
         Rectangle {
             Layout.fillWidth: true
-            height: 100
+            height: 120
             color: "#3C4C5C"
             radius: 10
             border.color: "#5C7C9C"
@@ -61,6 +90,15 @@ ApplicationWindow {
                     color: "#BDC3C7"
                     font.pointSize: 12
                 }
+
+                // Loading status
+                Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    text: audioManager.loadingStatus
+                    color: audioManager.isLoading ? "#F39C12" : "#95A5A6"
+                    font.pointSize: 10
+                    visible: audioManager.isLoading || audioManager.loadingStatus !== "Ready"
+                }
             }
         }
 
@@ -73,19 +111,19 @@ ApplicationWindow {
 
             background: Rectangle {
                 implicitWidth: 200
-                implicitHeight: 6
+                implicitHeight: 8
                 color: "#34495E"
-                radius: 3
+                radius: 4
             }
 
             contentItem: Item {
                 implicitWidth: 200
-                implicitHeight: 4
+                implicitHeight: 6
 
                 Rectangle {
                     width: parent.parent.visualPosition * parent.width
                     height: parent.height
-                    radius: 2
+                    radius: 3
                     color: "#E74C3C"
                 }
             }
@@ -98,13 +136,14 @@ ApplicationWindow {
 
             Button {
                 id: loadButton
-                text: "📁 Load File"
+                text: "Load File"
+                enabled: !audioManager.isLoading
                 onClicked: fileDialog.open()
 
                 background: Rectangle {
-                    color: parent.pressed ? "#2980B9" : "#3498DB"
+                    color: parent.enabled ? (parent.pressed ? "#2980B9" : "#3498DB") : "#95A5A6"
                     radius: 5
-                    border.color: "#2980B9"
+                    border.color: parent.enabled ? "#2980B9" : "#7F8C8D"
                     border.width: 1
                 }
 
@@ -118,8 +157,8 @@ ApplicationWindow {
 
             Button {
                 id: playButton
-                text: audioManager.isPlaying ? "⏸️ Pause" : "▶️ Play"
-                enabled: audioManager.currentFile !== ""
+                text: audioManager.isPlaying ? "Pause" : "Play"
+                enabled: audioManager.currentFile !== "" && !audioManager.isLoading
                 onClicked: {
                     if (audioManager.isPlaying) {
                         audioManager.pause()
@@ -145,8 +184,8 @@ ApplicationWindow {
 
             Button {
                 id: stopButton
-                text: "⏹️ Stop"
-                enabled: audioManager.currentFile !== ""
+                text: "Stop"
+                enabled: audioManager.currentFile !== "" && !audioManager.isLoading
                 onClicked: audioManager.stop()
 
                 background: Rectangle {
@@ -165,7 +204,7 @@ ApplicationWindow {
             }
         }
 
-        // Audio devices info
+        // Audio devices and formats info
         Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
@@ -180,10 +219,10 @@ ApplicationWindow {
 
                 Column {
                     width: parent.width
-                    spacing: 10
+                    spacing: 15
 
                     Text {
-                        text: "🔊 Available Audio Devices:"
+                        text: "Available Audio Devices:"
                         color: "white"
                         font.pointSize: 14
                         font.bold: true
@@ -200,16 +239,35 @@ ApplicationWindow {
                             width: parent.width
                         }
                     }
+
+                    Text {
+                        text: "Supported Formats:"
+                        color: "white"
+                        font.pointSize: 14
+                        font.bold: true
+                    }
+
+                    Repeater {
+                        model: audioManager.getSupportedFormats()
+
+                        Text {
+                            text: "• " + modelData
+                            color: "#BDC3C7"
+                            font.pointSize: 10
+                            wrapMode: Text.WordWrap
+                            width: parent.width
+                        }
+                    }
                 }
             }
         }
     }
 
-    // File dialog
+    // File dialog với multi-format support
     FileDialog {
         id: fileDialog
         title: "Select Audio File"
-        nameFilters: ["Audio files (*.wav)"]
+        nameFilters: audioManager.getSupportedFormats()
         onAccepted: {
             console.log("Selected file:", selectedFile)
             audioManager.loadFile(selectedFile)
@@ -227,16 +285,41 @@ ApplicationWindow {
 
     Dialog {
         id: errorDialog
-        title: "❌ Error"
+        title: "Error"
         property alias text: errorText.text
 
         Text {
             id: errorText
             color: "#E74C3C"
             wrapMode: Text.WordWrap
+            width: 300
         }
 
         standardButtons: Dialog.Ok
+    }
+
+    // Loading overlay
+    Rectangle {
+        anchors.fill: parent
+        color: "#80000000"  // Semi-transparent black
+        visible: false
+
+        ColumnLayout {
+            anchors.centerIn: parent
+            spacing: 20
+
+            BusyIndicator {
+                Layout.alignment: Qt.AlignHCenter
+                running: audioManager.isLoading
+            }
+
+            Text {
+                Layout.alignment: Qt.AlignHCenter
+                text: audioManager.loadingStatus
+                color: "white"
+                font.pointSize: 14
+            }
+        }
     }
 
     // Helper functions

@@ -4,14 +4,10 @@
 #include <QObject>
 #include <QString>
 #include <QTimer>
-#include <QDebug>
-#include <vector>
-#include <cstring>
-#include <cstdint>
-
-extern "C" {
-#include "portaudio.h"
-}
+#include <QStringList>
+#include <memory>
+#include "audio_decoder.h"
+#include "audio_player.h"
 
 class AudioManager : public QObject
 {
@@ -20,76 +16,53 @@ class AudioManager : public QObject
     Q_PROPERTY(double progress READ progress NOTIFY progressChanged)
     Q_PROPERTY(QString currentFile READ currentFile NOTIFY currentFileChanged)
     Q_PROPERTY(double duration READ duration NOTIFY durationChanged)
+    Q_PROPERTY(bool isFfmpegAvailable READ isFfmpegAvailable NOTIFY isFfmpegAvailableChanged)
+    Q_PROPERTY(bool isLoading READ isLoading NOTIFY isLoadingChanged)
+    Q_PROPERTY(QString loadingStatus READ loadingStatus NOTIFY loadingStatusChanged)
 
 public:
-    explicit AudioManager(QObject *parent = nullptr);
+    explicit AudioManager(QObject* parent = nullptr);
     ~AudioManager();
 
-    // Properties
-    bool isPlaying() const { return isPlaying_; }
+    bool isPlaying() const;
     double progress() const { return progress_; }
     QString currentFile() const { return currentFile_; }
     double duration() const { return duration_; }
+    bool isFfmpegAvailable() const;
+    bool isLoading() const { return isLoading_; }
+    QString loadingStatus() const { return loadingStatus_; }
 
-    // Q_INVOKABLE methods (có thể gọi từ QML)
     Q_INVOKABLE bool loadFile(const QString& filePath);
     Q_INVOKABLE void play();
     Q_INVOKABLE void pause();
     Q_INVOKABLE void stop();
     Q_INVOKABLE QStringList getAudioDevices();
+    Q_INVOKABLE QStringList getSupportedFormats();
 
 signals:
     void isPlayingChanged();
     void progressChanged();
     void currentFileChanged();
     void durationChanged();
+    void isFfmpegAvailableChanged();
+    void isLoadingChanged();
+    void loadingStatusChanged();
     void errorOccurred(const QString& error);
 
 private slots:
     void updateProgress();
 
 private:
-    struct AudioData {
-        std::vector<int16_t> samples;
-        size_t totalFrames;
-        size_t currentFrame;
-        int channels;
-        unsigned int sampleRate;
+    void setLoadingStatus(const QString& status);
+    void setLoading(bool loading);
 
-        AudioData() : totalFrames(0), currentFrame(0), channels(0), sampleRate(0) {}
-
-        void reset() {
-            samples.clear();
-            totalFrames = 0;
-            currentFrame = 0;
-            channels = 0;
-            sampleRate = 0;
-        }
-    };
-
-    static int audioCallback(const void *inputBuffer, void *outputBuffer,
-                             unsigned long framesPerBuffer,
-                             const PaStreamCallbackTimeInfo* timeInfo,
-                             PaStreamCallbackFlags statusFlags,
-                             void *userData);
-
-    int processAudio(const void *inputBuffer, void *outputBuffer,
-                     unsigned long framesPerBuffer,
-                     const PaStreamCallbackTimeInfo* timeInfo,
-                     PaStreamCallbackFlags statusFlags);
-
-    bool loadWAV(const QString& filePath);
-    bool initializePortAudio();
-    void cleanupPortAudio();
-
-    AudioData audioData_;
-    PaStream* stream_;
-    bool isInitialized_;
-    bool isPlaying_;
+    std::unique_ptr<AudioPlayer> player_;
     double progress_;
     QString currentFile_;
     double duration_;
     QTimer* progressTimer_;
+    bool isLoading_;
+    QString loadingStatus_;
 };
 
-#endif
+#endif // AUDIOMANAGER_H

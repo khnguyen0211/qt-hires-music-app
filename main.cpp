@@ -3,16 +3,15 @@
 #include <QQmlContext>
 #include "audiomanager.h"
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char* argv[]) {
     QGuiApplication app(argc, argv);
+    app.setApplicationName("Hi-Res Music Player");
+    app.setApplicationVersion("1.0");
 
     QQmlApplicationEngine engine;
 
-    // Register AudioManager với QML
     qmlRegisterType<AudioManager>("AudioEngine", 1, 0, "AudioManager");
 
-    // Tạo instance AudioManager và expose ra QML context
     AudioManager audioManager;
     engine.rootContext()->setContextProperty("audioManager", &audioManager);
 
