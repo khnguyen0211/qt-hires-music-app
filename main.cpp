@@ -2,6 +2,8 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include "audiomanager.h"
+#include "track.h"
+#include "playlist_manager.h"
 
 int main(int argc, char* argv[]) {
     QGuiApplication app(argc, argv);
@@ -11,6 +13,8 @@ int main(int argc, char* argv[]) {
     QQmlApplicationEngine engine;
 
     qmlRegisterType<AudioManager>("AudioEngine", 1, 0, "AudioManager");
+    qmlRegisterType<Track>("AudioEngine", 1, 0, "Track");
+    qmlRegisterType<PlaylistManager>("AudioEngine", 1, 0, "PlaylistManager");
 
     AudioManager audioManager;
     engine.rootContext()->setContextProperty("audioManager", &audioManager);

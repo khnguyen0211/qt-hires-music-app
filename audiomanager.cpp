@@ -6,10 +6,12 @@
 AudioManager::AudioManager(QObject* parent)
     : QObject(parent)
     , player_(std::make_unique<AudioPlayer>())
+    , playlistManager_(std::make_unique<PlaylistManager>(this))
     , progress_(0.0)
     , duration_(0.0)
     , isLoading_(false)
     , loadingStatus_("Ready")
+    , autoAdvance_(true)
 {
     progressTimer_ = new QTimer(this);
     connect(progressTimer_, &QTimer::timeout, this, &AudioManager::updateProgress);
@@ -30,27 +32,112 @@ bool AudioManager::isFfmpegAvailable() const {
 }
 
 bool AudioManager::loadFile(const QString& filePath) {
-    qDebug() << "Loading file:" << filePath;
+    qDebug() << "Loading single file:" << filePath;
+    playlistManager_->clearPlaylist();
+    playlistManager_->addTrack(filePath);
+    
+    // Load track and auto-play if successful
+    if (loadCurrentTrack()) {
+        qDebug() << "Auto-playing loaded single track";
+        play();
+        return true;
+    }
+    qDebug() << "Failed to load track";
+    return false;
+}
+
+void AudioManager::addToPlaylist(const QString& filePath) {
+    bool wasEmpty = playlistManager_->trackCount() == 0;
+    playlistManager_->addTrack(filePath);
+    
+    qDebug() << "Added track to playlist:" << filePath << "Was empty:" << wasEmpty;
+    
+    // Auto-play if this was the first track added
+    if (wasEmpty && playlistManager_->trackCount() > 0) {
+        qDebug() << "Auto-playing first track added to empty playlist";
+        if (loadCurrentTrack()) {
+            play();
+        }
+    }
+}
+
+void AudioManager::addMultipleToPlaylist(const QStringList& filePaths) {
+    bool wasEmpty = playlistManager_->trackCount() == 0;
+    playlistManager_->addTracks(filePaths);
+    
+    qDebug() << "Added" << filePaths.size() << "files to playlist. Was empty:" << wasEmpty << "Track count now:" << playlistManager_->trackCount();
+    
+    // Auto-play if this was the first batch added to empty playlist
+    if (wasEmpty && playlistManager_->trackCount() > 0) {
+        qDebug() << "Auto-playing first track from newly loaded playlist";
+        qDebug() << "BEFORE loadCurrentTrack() - Current index:" << playlistManager_->currentIndex() << "hasNext:" << playlistManager_->hasNext() << "hasPrevious:" << playlistManager_->hasPrevious();
+        
+        if (loadCurrentTrack()) {
+            qDebug() << "AFTER loadCurrentTrack() - Current index:" << playlistManager_->currentIndex() << "hasNext:" << playlistManager_->hasNext() << "hasPrevious:" << playlistManager_->hasPrevious();
+            play();
+        } else {
+            qDebug() << "loadCurrentTrack() failed";
+        }
+    }
+}
+
+void AudioManager::playNext() {
+    qDebug() << "playNext() called";
+    qDebug() << "Before next() - currentIndex:" << playlistManager_->currentIndex() 
+             << "trackCount:" << playlistManager_->trackCount()
+             << "hasNext:" << playlistManager_->hasNext();
+    
+    if (playlistManager_->next()) {
+        qDebug() << "next() succeeded - new currentIndex:" << playlistManager_->currentIndex();
+        loadCurrentTrack();
+        // Auto-play after switching to next track
+        play();
+    } else {
+        qDebug() << "next() failed - hasNext was false";
+    }
+}
+
+void AudioManager::playPrevious() {
+    if (playlistManager_->previous()) {
+        loadCurrentTrack();
+        // Auto-play after switching to previous track
+        play();
+    }
+}
+
+void AudioManager::playTrackAt(int index) {
+    if (playlistManager_->setCurrentIndex(index)) {
+        loadCurrentTrack();
+        // Auto-play when selecting a specific track
+        play();
+    }
+}
+
+bool AudioManager::loadCurrentTrack() {
+    qDebug() << "loadCurrentTrack() called - currentIndex:" << playlistManager_->currentIndex();
+    
+    QString filePath = playlistManager_->currentFilePath();
+    if (filePath.isEmpty()) {
+        qDebug() << "loadCurrentTrack() failed - empty filePath";
+        return false;
+    }
+
+    qDebug() << "Loading current track:" << filePath;
 
     stop();
     setLoading(true);
     setLoadingStatus("Loading audio file...");
 
-    QString actualPath = filePath;
-    if (filePath.startsWith("file://")) {
-        actualPath = QUrl(filePath).toLocalFile();
-    }
-
     AudioData audioData;
-    QString extension = QFileInfo(actualPath).suffix().toLower();
+    QString extension = QFileInfo(filePath).suffix().toLower();
     
     if (AudioDecoder::isFormatSupported(extension)) {
         setLoadingStatus("Loading " + extension.toUpper() + " file...");
         
-        if (!AudioDecoder::loadAudioFile(actualPath, audioData)) {
+        if (!AudioDecoder::loadAudioFile(filePath, audioData)) {
             setLoading(false);
             setLoadingStatus("Ready");
-            emit errorOccurred("Failed to load audio file: " + actualPath);
+            emit errorOccurred("Failed to load audio file: " + filePath);
             return false;
         }
     } else {
@@ -67,9 +154,15 @@ bool AudioManager::loadFile(const QString& filePath) {
         return false;
     }
 
-    currentFile_ = QFileInfo(actualPath).baseName();
+    currentFile_ = QFileInfo(filePath).baseName();
     duration_ = audioData.getDuration();
     progress_ = 0.0;
+
+    // Update track duration in playlist
+    Track* currentTrack = playlistManager_->currentTrack();
+    if (currentTrack) {
+        currentTrack->setDuration(duration_);
+    }
 
     setLoading(false);
     setLoadingStatus("Ready");
@@ -77,7 +170,7 @@ bool AudioManager::loadFile(const QString& filePath) {
     emit durationChanged();
     emit progressChanged();
 
-    qDebug() << "File loaded successfully. Duration:" << duration_ << "seconds";
+    qDebug() << "Track loaded successfully. Duration:" << duration_ << "seconds";
     return true;
 }
 
@@ -85,6 +178,21 @@ bool AudioManager::loadFile(const QString& filePath) {
 void AudioManager::play() {
     if (!player_) {
         emit errorOccurred("Audio player not initialized");
+        return;
+    }
+
+    // Nếu chưa có track nào được load, thử load track đầu tiên trong playlist
+    if (currentFile_.isEmpty() && playlistManager_->trackCount() > 0) {
+        qDebug() << "No current track, loading first track from playlist";
+        if (!loadCurrentTrack()) {
+            emit errorOccurred("Failed to load track from playlist");
+            return;
+        }
+    }
+
+    // Kiểm tra nếu vẫn không có audio data
+    if (currentFile_.isEmpty()) {
+        emit errorOccurred("No audio file loaded. Please load a file first.");
         return;
     }
 
@@ -128,10 +236,18 @@ void AudioManager::updateProgress() {
         }
 
         if (player_->getState() == PlaybackState::Stopped && progress_ >= 1.0) {
-            qDebug() << "Playback finished";
+            qDebug() << "Track finished";
             progressTimer_->stop();
             emit isPlayingChanged();
+            onTrackFinished();
         }
+    }
+}
+
+void AudioManager::onTrackFinished() {
+    if (autoAdvance_ && playlistManager_->hasNext()) {
+        qDebug() << "Auto-advancing to next track";
+        playNext();
     }
 }
 

@@ -41,6 +41,10 @@ qt_add_executable(appHiResMusicApp
     audio_decoder.cpp
     audio_player.h
     audio_player.cpp
+    track.h
+    track.cpp
+    playlist_manager.h
+    playlist_manager.cpp
 )
 
 qt_add_qml_module(appHiResMusicApp
