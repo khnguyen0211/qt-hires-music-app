@@ -64,7 +64,7 @@ void PlaylistManager::addTrack(const QString& filePath) {
     emit trackAdded(static_cast<int>(tracks_.size()) - 1);
     emit trackCountChanged();
 
-    // Set first track as current if playlist was empty
+    // Set first track as current if playlist was empty (only for single track add)
     if (tracks_.size() == 1 && currentIndex_ == -1) {
         qDebug() << "Setting first track as current";
         setCurrentIndex(0);
@@ -75,14 +75,33 @@ void PlaylistManager::addTrack(const QString& filePath) {
 
 void PlaylistManager::addTracks(const QStringList& filePaths) {
     bool wasEmpty = tracks_.empty();
+    int originalCurrentIndex = currentIndex_;
+    
+    // Temporarily disable currentIndex setting during batch add
+    bool wasCurrentIndexSet = false;
     
     for (const QString& filePath : filePaths) {
-        addTrack(filePath);
+        if (!AudioDecoder::isFormatSupported(QFileInfo(filePath).suffix().toLower())) {
+            qDebug() << "Unsupported format:" << filePath;
+            continue;
+        }
+
+        beginInsertRows(QModelIndex(), static_cast<int>(tracks_.size()), static_cast<int>(tracks_.size()));
+        
+        auto track = std::make_unique<Track>(filePath, this);
+        tracks_.push_back(std::move(track));
+        
+        endInsertRows();
+
+        emit trackAdded(static_cast<int>(tracks_.size()) - 1);
+        emit trackCountChanged();
+
+        qDebug() << "Track added:" << filePath;
     }
     
-    // Ensure first track is current if playlist was empty before
-    if (wasEmpty && !tracks_.empty() && currentIndex_ == -1) {
-        qDebug() << "Setting current index to 0 after adding tracks to empty playlist";
+    // Set current index only once after all tracks are added
+    if (wasEmpty && !tracks_.empty() && originalCurrentIndex == -1) {
+        qDebug() << "Setting current index to 0 after adding all tracks to empty playlist";
         setCurrentIndex(0);
     }
     
