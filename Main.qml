@@ -6,79 +6,99 @@ import AudioEngine 1.0
 
 ApplicationWindow {
     id: window
-    width: 900
-    height: 700
+    width: 1000
+    height: 750
     visible: true
     title: "Hi-Res Music Player"
-    color: "#1a1a1a"
-    
-    // Set minimum size to prevent UI from breaking
-    minimumWidth: 800
-    minimumHeight: 600
+    color: "black"
 
-    // Clean dark background
+    // Set minimum size to prevent UI from breaking
+    minimumWidth: 900
+    minimumHeight: 650
+
+    // Spotify-inspired dark background
     Rectangle {
         anchors.fill: parent
         gradient: Gradient {
             orientation: Gradient.Vertical
-            GradientStop { position: 0.0; color: "#1a1a1a" }
-            GradientStop { position: 1.0; color: "#2d2d2d" }
+            GradientStop { position: 0.0; color: "black" }
+            GradientStop { position: 0.3; color: "#121212" }
+            GradientStop { position: 1.0; color: "#191414" }
         }
     }
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 32
-        spacing: 24
+        anchors.margins: 24
+        spacing: 16
 
-        // 1. HEADER - App Title (1/10 ratio)
+        // 1. HEADER - App Title (Spotify style)
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 50
-            color: "#2a2a2a"
-            radius: 12
-            border.color: "#4a4a4a"
-            border.width: 1
+            Layout.preferredHeight: 64
+            color: "transparent"
+
+            Rectangle {
+                anchors.fill: parent
+                color: "#1db954"
+                opacity: 0.1
+                radius: 8
+            }
 
             RowLayout {
-                anchors.centerIn: parent
-                spacing: 12
+                anchors.fill: parent
+                anchors.leftMargin: 20
+                anchors.rightMargin: 20
+                spacing: 16
 
                 Rectangle {
-                    width: 36
-                    height: 36
-                    radius: 8
-                    gradient: Gradient {
-                        GradientStop { position: 0.0; color: "#1db954" }
-                        GradientStop { position: 1.0; color: "#1ed760" }
-                    }
+                    width: 40
+                    height: 40
+                    radius: 20
+                    color: "#1db954"
 
                     Text {
                         anchors.centerIn: parent
-                        text: "♪"
+                        text: "🎵"
                         color: "white"
-                        font.pointSize: 18
-                        font.bold: true
+                        font.pointSize: 20
+                        font.family: "Arial"
+                        font.weight: Font.Bold
                     }
                 }
 
                 Text {
                     text: "Hi-Res Music Player"
-                    color: "#ffffff"
-                    font.pointSize: 20
+                    color: "white"
+                    font.pointSize: 24
+                    font.family: "Arial"
                     font.weight: Font.Bold
+                    Layout.fillWidth: true
+                }
+
+                Text {
+                    text: "Premium Quality Audio"
+                    color: "#b3b3b3"
+                    font.pointSize: 12
+                    font.family: "Arial"
+                    font.weight: Font.Normal
                 }
             }
         }
 
-        // 2. PLAYER AREA - Music Controls (2/10 ratio)  
+        // 2. PLAYER AREA - Music Controls (Spotify-inspired)
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 200
-            color: "#2a2a2a"
-            radius: 16
-            border.color: "#4a4a4a"
-            border.width: 1
+            Layout.preferredHeight: 220
+            color: "#181818"
+            radius: 12
+
+            Rectangle {
+                anchors.fill: parent
+                color: "#282828"
+                opacity: 0.3
+                radius: 12
+            }
 
             ColumnLayout {
                 anchors.fill: parent
@@ -90,21 +110,29 @@ ApplicationWindow {
                     Layout.fillWidth: true
                     spacing: 20
 
-                    // Album art (smaller)
+                    // Album art (Spotify style)
                     Rectangle {
-                        width: 80
-                        height: 80
-                        radius: 10
-                        gradient: Gradient {
-                            GradientStop { position: 0.0; color: "#1db954" }
-                            GradientStop { position: 1.0; color: "#1ed760" }
+                        width: 90
+                        height: 90
+                        radius: 6
+                        color: "#404040"
+
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: 6
+                            gradient: Gradient {
+                                GradientStop { position: 0.0; color: "#1db954" }
+                                GradientStop { position: 0.5; color: "#1ed760" }
+                                GradientStop { position: 1.0; color: "#1aa34a" }
+                            }
                         }
 
                         Text {
                             anchors.centerIn: parent
-                            text: "♪"
+                            text: "🎵"
                             color: "white"
-                            font.pointSize: 28
+                            font.pointSize: 32
+                            font.family: "Arial"
                             font.weight: Font.Bold
                         }
 
@@ -112,53 +140,94 @@ ApplicationWindow {
                             running: audioManager.isPlaying
                             from: 0
                             to: 360
-                            duration: 8000
+                            duration: 10000
                             loops: Animation.Infinite
+                        }
+
+                        // Subtle shadow effect
+                        Rectangle {
+                            anchors.fill: parent
+                            anchors.topMargin: 3
+                            anchors.leftMargin: 3
+                            radius: 6
+                            color: "black"
+                            opacity: 0.2
+                            z: -1
                         }
                     }
 
-                    // Track info (compact)
+                    // Track info (Spotify style)
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 6
+                        spacing: 8
 
                         Text {
                             text: audioManager.currentFile || (audioManager.playlist.trackCount > 0 ? "Ready to play" : "No track selected")
-                            color: "#ffffff"
-                            font.pointSize: 16
+                            color: "white"
+                            font.pointSize: 18
+                            font.family: "Arial"
                             font.weight: Font.Bold
                             elide: Text.ElideRight
                             Layout.fillWidth: true
                         }
 
                         Text {
+                            text: "Unknown Artist"
+                            color: "#b3b3b3"
+                            font.pointSize: 14
+                            font.family: "Arial"
+                            font.weight: Font.Normal
+                        }
+
+                        Text {
                             text: formatTime(audioManager.progress * audioManager.duration) + " / " + formatTime(audioManager.duration)
                             color: "#b3b3b3"
-                            font.pointSize: 12
+                            font.pointSize: 11
+                            font.family: "Arial"
                         }
 
                         Rectangle {
                             Layout.fillWidth: true
-                            height: 4
+                            height: 5
                             color: "#404040"
-                            radius: 2
+                            radius: 2.5
 
                             Rectangle {
                                 width: parent.width * audioManager.progress
                                 height: parent.height
-                                radius: 2
+                                radius: 2.5
                                 color: "#1db954"
 
                                 Behavior on width {
                                     NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
                                 }
                             }
+
+                            // Progress handle
+                            Rectangle {
+                                width: 12
+                                height: 12
+                                radius: 6
+                                color: "white"
+                                x: Math.max(0, Math.min(parent.width - width, parent.width * audioManager.progress - width/2))
+                                y: -3.5
+                                visible: audioManager.duration > 0
+
+                                Rectangle {
+                                    anchors.centerIn: parent
+                                    width: 8
+                                    height: 8
+                                    radius: 4
+                                    color: "#1db954"
+                                }
+                            }
                         }
 
                         Text {
                             text: audioManager.loadingStatus
-                            color: "#ffa726"
+                            color: "#1db954"
                             font.pointSize: 10
+                            font.family: "Arial"
                             visible: audioManager.isLoading
                         }
                     }
@@ -174,56 +243,76 @@ ApplicationWindow {
                         spacing: 8
 
                         Button {
-                            text: "Load"
+                            text: "Load Track"
                             enabled: !audioManager.isLoading
-                            
+                            hoverEnabled: true
+                            flat: true
+                            focusPolicy: Qt.NoFocus
+                            down: false
+
                             background: Rectangle {
-                                implicitWidth: 80
-                                implicitHeight: 32
-                                radius: 16
-                                color: parent.enabled ? (parent.hovered ? "#1ed760" : "#1db954") : "#404040"
-                                border.color: parent.enabled ? "#1ed760" : "#606060"
+                                implicitWidth: 100
+                                implicitHeight: 36
+                                radius: 18
+                                color: parent.enabled ? (parent.hovered ? "#1a1a1a" : "transparent") : "transparent"
+                                border.color: parent.enabled ? (parent.hovered ? "#1db954" : "#535353") : "#404040"
                                 border.width: 1
+                                opacity: parent.enabled ? 1.0 : 0.5
 
                                 Behavior on color { ColorAnimation { duration: 150 } }
+                                Behavior on border.color { ColorAnimation { duration: 150 } }
+                                Behavior on opacity { NumberAnimation { duration: 150 } }
                             }
-                            
+
                             contentItem: Text {
                                 text: parent.text
-                                color: parent.enabled ? "white" : "#888888"
-                                font.pointSize: 11
+                                color: parent.enabled ? (parent.hovered ? "#1db954" : "#b3b3b3") : "#535353"
+                                font.pointSize: 12
+                                font.family: "Arial"
                                 font.weight: Font.Bold
                                 horizontalAlignment: Text.AlignHCenter
                                 verticalAlignment: Text.AlignVCenter
+
+                                Behavior on color { ColorAnimation { duration: 150 } }
                             }
-                            
+
                             onClicked: fileDialog.open()
                         }
 
                         Button {
-                            text: "Add"
+                            text: "Add to Playlist"
                             enabled: !audioManager.isLoading
-                            
+                            hoverEnabled: true
+                            flat: true
+                            focusPolicy: Qt.NoFocus
+                            down: false
+
                             background: Rectangle {
-                                implicitWidth: 80
-                                implicitHeight: 32
-                                radius: 16
-                                color: parent.enabled ? (parent.hovered ? "#2196f3" : "#1976d2") : "#404040"
-                                border.color: parent.enabled ? "#2196f3" : "#606060"
+                                implicitWidth: 120
+                                implicitHeight: 36
+                                radius: 18
+                                color: parent.enabled ? (parent.hovered ? "#1a1a1a" : "transparent") : "transparent"
+                                border.color: parent.enabled ? (parent.hovered ? "#1db954" : "#535353") : "#404040"
                                 border.width: 1
+                                opacity: parent.enabled ? 1.0 : 0.5
 
                                 Behavior on color { ColorAnimation { duration: 150 } }
+                                Behavior on border.color { ColorAnimation { duration: 150 } }
+                                Behavior on opacity { NumberAnimation { duration: 150 } }
                             }
-                            
+
                             contentItem: Text {
                                 text: parent.text
-                                color: parent.enabled ? "white" : "#888888"
-                                font.pointSize: 11
+                                color: parent.enabled ? (parent.hovered ? "#1db954" : "#b3b3b3") : "#535353"
+                                font.pointSize: 12
+                                font.family: "Arial"
                                 font.weight: Font.Bold
                                 horizontalAlignment: Text.AlignHCenter
                                 verticalAlignment: Text.AlignVCenter
+
+                                Behavior on color { ColorAnimation { duration: 150 } }
                             }
-                            
+
                             onClicked: playlistFileDialog.open()
                         }
                     }
@@ -235,56 +324,80 @@ ApplicationWindow {
                         spacing: 12
 
                         Button {
-                            width: 48
-                            height: 48
+                            width: 56
+                            height: 56
                             enabled: audioManager.playlist.hasPrevious && !audioManager.isLoading
-                            
+                            flat: true
+                            focusPolicy: Qt.NoFocus
+                            down: false
+
                             background: Rectangle {
-                                radius: 24
-                                color: parent.enabled ? (parent.hovered ? "#404040" : "#333333") : "#2a2a2a"
-                                border.color: parent.enabled ? "#606060" : "#404040"
-                                border.width: 1
+                                radius: 28
+                                color: parent.enabled ? (parent.hovered ? "#282828" : "transparent") : "transparent"
 
                                 Behavior on color { ColorAnimation { duration: 150 } }
                             }
-                            
-                            contentItem: Text {
-                                text: "⏮"
-                                color: parent.enabled ? "white" : "#666666"
-                                font.pointSize: 14
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
+
+                            hoverEnabled: true
+
+                            contentItem: Row {
+                                anchors.centerIn: parent
+                                spacing: 1
+
+                                Text {
+                                    text: "◀◀"
+                                    color: parent.parent.enabled ? (parent.parent.hovered ? "white" : "#b3b3b3") : "#535353"
+                                    font.pointSize: 12
+                                    font.family: "Arial"
+                                    font.weight: Font.Bold
+
+                                    Behavior on color { ColorAnimation { duration: 200 } }
+                                }
                             }
-                            
+
                             onClicked: audioManager.playPrevious()
                         }
 
                         Button {
-                            width: 60
-                            height: 60
+                            width: 56
+                            height: 56
                             enabled: (audioManager.playlist.trackCount > 0 || audioManager.currentFile !== "") && !audioManager.isLoading
-                            
-                            background: Rectangle {
-                                radius: 30
-                                color: parent.enabled ? (parent.hovered ? "#1ed760" : "#1db954") : "#404040"
-                                border.color: parent.enabled ? "#1ed760" : "#606060"
-                                border.width: 2
+                            flat: true
+                            focusPolicy: Qt.NoFocus
+                            down: false
 
-                                Behavior on scale { NumberAnimation { duration: 100 } }
-                                scale: parent.pressed ? 0.95 : 1.0
-                                
+                            background: Rectangle {
+                                radius: 28
+                                color: parent.enabled ? (parent.hovered ? "#1ed760" : "#1db954") : "#535353"
+
                                 Behavior on color { ColorAnimation { duration: 150 } }
+
+                                // Shadow effect
+                                Rectangle {
+                                    anchors.fill: parent
+                                    anchors.topMargin: 2
+                                    radius: 28
+                                    color: "black"
+                                    opacity: 0.3
+                                    z: -1
+                                }
                             }
-                            
+
+                            hoverEnabled: true
+
                             contentItem: Text {
-                                text: audioManager.isPlaying ? "⏸" : "▶"
-                                color: parent.enabled ? "white" : "#888888"
-                                font.pointSize: 22
+                                text: audioManager.isPlaying ? "| |" : " ▶ "
+                                color: parent.enabled ? (parent.hovered ? "black" : "black") : "#b3b3b3"
+                                font.pointSize: audioManager.isPlaying ? 16 : 18
+                                font.family: "Arial"
                                 font.weight: Font.Bold
                                 horizontalAlignment: Text.AlignHCenter
                                 verticalAlignment: Text.AlignVCenter
+
+                                Behavior on color { ColorAnimation { duration: 200 } }
+                                Behavior on font.pointSize { NumberAnimation { duration: 150 } }
                             }
-                            
+
                             onClicked: {
                                 if (audioManager.isPlaying) {
                                     audioManager.pause()
@@ -295,55 +408,72 @@ ApplicationWindow {
                         }
 
                         Button {
-                            width: 48
-                            height: 48
+                            width: 56
+                            height: 56
                             enabled: audioManager.playlist.trackCount > 0 && !audioManager.isLoading
-                            
+                            flat: true
+                            focusPolicy: Qt.NoFocus
+                            down: false
+
                             background: Rectangle {
-                                radius: 24
-                                color: parent.enabled ? (parent.hovered ? "#f44336" : "#d32f2f") : "#404040"
-                                border.color: parent.enabled ? "#f44336" : "#606060"
-                                border.width: 1
+                                radius: 28
+                                color: parent.enabled ? (parent.hovered ? "#282828" : "transparent") : "transparent"
 
                                 Behavior on color { ColorAnimation { duration: 150 } }
                             }
-                            
+
+                            hoverEnabled: true
+
                             contentItem: Text {
-                                text: "⏹"
-                                color: parent.enabled ? "white" : "#888888"
-                                font.pointSize: 14
+                                text: "■"
+                                color: parent.enabled ? (parent.hovered ? "white" : "#b3b3b3") : "#535353"
+                                font.pointSize: 16
+                                font.family: "Arial"
+                                font.weight: Font.Bold
                                 horizontalAlignment: Text.AlignHCenter
                                 verticalAlignment: Text.AlignVCenter
+
+                                Behavior on color { ColorAnimation { duration: 200 } }
                             }
-                            
+
                             onClicked: audioManager.stop()
                         }
 
                         Button {
-                            width: 48
-                            height: 48
+                            width: 56
+                            height: 56
                             enabled: audioManager.playlist.hasNext && !audioManager.isLoading
-                            
+                            flat: true
+                            focusPolicy: Qt.NoFocus
+                            down: false
+
                             // Debug the button state
                             onEnabledChanged: console.log("Next button enabled:", enabled, "hasNext:", audioManager.playlist.hasNext, "isLoading:", audioManager.isLoading)
-                            
+
                             background: Rectangle {
-                                radius: 24
-                                color: parent.enabled ? (parent.hovered ? "#404040" : "#333333") : "#2a2a2a"
-                                border.color: parent.enabled ? "#606060" : "#404040"
-                                border.width: 1
+                                radius: 28
+                                color: parent.enabled ? (parent.hovered ? "#282828" : "transparent") : "transparent"
 
                                 Behavior on color { ColorAnimation { duration: 150 } }
                             }
-                            
-                            contentItem: Text {
-                                text: "⏭"
-                                color: parent.enabled ? "white" : "#666666"
-                                font.pointSize: 14
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
+
+                            hoverEnabled: true
+
+                            contentItem: Row {
+                                anchors.centerIn: parent
+                                spacing: 1
+
+                                Text {
+                                    text: "▶▶"
+                                    color: parent.parent.enabled ? (parent.parent.hovered ? "white" : "#b3b3b3") : "#535353"
+                                    font.pointSize: 12
+                                    font.family: "Arial"
+                                    font.weight: Font.Bold
+
+                                    Behavior on color { ColorAnimation { duration: 200 } }
+                                }
                             }
-                            
+
                             onClicked: {
                                 console.log("Next button clicked - hasNext:", audioManager.playlist.hasNext, "currentIndex:", audioManager.playlist.currentIndex, "trackCount:", audioManager.playlist.trackCount)
                                 audioManager.playNext()
@@ -354,71 +484,88 @@ ApplicationWindow {
             }
         }
 
-        // 3. PLAYLIST SECTION (7/10 ratio - Main content area)
+        // 3. PLAYLIST SECTION (Spotify-inspired)
         Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.minimumHeight: 350
-            color: "#2a2a2a"
-            radius: 16
-            border.color: "#4a4a4a"
-            border.width: 1
+            Layout.minimumHeight: 380
+            color: "#121212"
+            radius: 12
+
+            Rectangle {
+                anchors.fill: parent
+                color: "#1a1a1a"
+                opacity: 0.5
+                radius: 12
+            }
 
             ColumnLayout {
                 anchors.fill: parent
                 anchors.margins: 24
                 spacing: 12
 
-                // Playlist header
+                // Playlist header (Spotify style)
                 RowLayout {
                     Layout.fillWidth: true
+                    spacing: 16
 
                     Text {
                         text: "Playlist"
-                        color: "#ffffff"
-                        font.pointSize: 16
+                        color: "white"
+                        font.pointSize: 20
+                        font.family: "Arial"
                         font.weight: Font.Bold
                         Layout.fillWidth: true
                     }
 
                     Rectangle {
-                        width: 60
-                        height: 32
-                        radius: 16
+                        width: Math.max(40, countText.implicitWidth + 16)
+                        height: 28
+                        radius: 14
                         color: "#1db954"
-                        
+
                         Text {
+                            id: countText
                             anchors.centerIn: parent
-                            text: audioManager.playlist.trackCount.toString()
-                            color: "white"
-                            font.pointSize: 14
+                            text: audioManager.playlist.trackCount.toString() + " songs"
+                            color: "black"
+                            font.pointSize: 11
+                            font.family: "Arial"
                             font.weight: Font.Bold
                         }
                     }
 
                     Button {
-                        width: 44
-                        height: 44
+                        width: 36
+                        height: 36
                         enabled: audioManager.playlist.trackCount > 0
-                        
+                        flat: true
+                        focusPolicy: Qt.NoFocus
+                        down: false
+
                         background: Rectangle {
-                            radius: 22
-                            color: parent.enabled ? (parent.hovered ? "#f44336" : "#d32f2f") : "#404040"
-                            border.color: parent.enabled ? "#f44336" : "#606060"
+                            radius: 18
+                            color: "transparent"
+                            border.color: parent.enabled ? (parent.hovered ? "white" : "#b3b3b3") : "#535353"
                             border.width: 1
 
-                            Behavior on color { ColorAnimation { duration: 150 } }
+                            Behavior on border.color { ColorAnimation { duration: 150 } }
                         }
-                        
+
+                        hoverEnabled: true
+
                         contentItem: Text {
-                            text: "✕"
-                            color: parent.enabled ? "white" : "#888888"
+                            text: "×"
+                            color: parent.enabled ? (parent.hovered ? "white" : "#b3b3b3") : "#535353"
                             font.pointSize: 16
+                            font.family: "Arial"
                             font.weight: Font.Bold
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
+
+                            Behavior on color { ColorAnimation { duration: 150 } }
                         }
-                        
+
                         onClicked: audioManager.playlist.clearPlaylist()
                     }
                 }
@@ -436,14 +583,11 @@ ApplicationWindow {
 
                         delegate: Rectangle {
                             width: playlistView.width
-                            height: 60
-                            radius: 12
-                            color: isCurrent ? "#1db954" : (hoverArea.containsMouse ? "#353535" : "#333333")
-                            border.color: isCurrent ? "#1ed760" : (hoverArea.containsMouse ? "#555555" : "#404040")
-                            border.width: 1
+                            height: 64
+                            radius: 8
+                            color: isCurrent ? "#1db954" : (hoverArea.containsMouse ? "#282828" : "transparent")
 
-                            Behavior on color { ColorAnimation { duration: 150 } }
-                            Behavior on border.color { ColorAnimation { duration: 150 } }
+                            Behavior on color { ColorAnimation { duration: 200 } }
 
                             MouseArea {
                                 id: hoverArea
@@ -465,18 +609,17 @@ ApplicationWindow {
 
                                 // Track number with status
                                 Rectangle {
-                                    width: 32
-                                    height: 32
-                                    radius: 16
-                                    color: isCurrent ? "white" : "#444444"
-                                    border.color: isCurrent ? "#1ed760" : "#555555"
-                                    border.width: 1
+                                    width: 36
+                                    height: 36
+                                    radius: 4
+                                    color: isCurrent ? "black" : "transparent"
 
                                     Text {
                                         anchors.centerIn: parent
                                         text: (index + 1).toString()
-                                        color: isCurrent ? "#1db954" : "#ffffff"
-                                        font.pointSize: 12
+                                        color: isCurrent ? "#1db954" : "#b3b3b3"
+                                        font.pointSize: 14
+                                        font.family: "Arial"
                                         font.weight: Font.Bold
                                     }
                                 }
@@ -486,48 +629,54 @@ ApplicationWindow {
                                     Layout.fillWidth: true
                                     spacing: 2
 
-                                    // Track title - larger and more prominent
+                                    // Track title - Spotify style
                                     Text {
                                         text: title
-                                        color: isCurrent ? "white" : "#ffffff"
-                                        font.pointSize: 14
-                                        font.weight: isCurrent ? Font.Bold : Font.Medium
+                                        color: isCurrent ? "black" : "white"
+                                        font.pointSize: 16
+                                        font.family: "Arial"
+                                        font.weight: isCurrent ? Font.Bold : Font.Normal
                                         elide: Text.ElideRight
                                         Layout.fillWidth: true
                                     }
 
-                                    // File info and duration
+                                    // File info and duration - Spotify style
                                     RowLayout {
                                         Layout.fillWidth: true
-                                        spacing: 6
+                                        spacing: 8
 
                                         Rectangle {
-                                            width: formatText.implicitWidth + 8
-                                            height: 16
-                                            radius: 8
-                                            color: isCurrent ? "#e8f5e8" : "#404040"
+                                            width: formatText.implicitWidth + 12
+                                            height: 20
+                                            radius: 10
+                                            color: isCurrent ? "black" : "#282828"
 
                                             Text {
                                                 id: formatText
                                                 anchors.centerIn: parent
                                                 text: extension.toUpperCase()
                                                 color: isCurrent ? "#1db954" : "#b3b3b3"
-                                                font.pointSize: 8
+                                                font.pointSize: 9
+                                                font.family: "Arial"
                                                 font.weight: Font.Bold
                                             }
                                         }
 
                                         Text {
                                             text: "•"
-                                            color: "#666666"
-                                            font.pointSize: 10
+                                            color: isCurrent ? "black" : "#535353"
+                                            font.pointSize: 12
+                                            font.family: "Arial"
                                         }
 
                                         Text {
-                                            text: "Double-click to play"
-                                            color: isCurrent ? "#e8f5e8" : "#888888"
-                                            font.pointSize: 9
-                                            font.weight: Font.Italic
+                                            text: hoverArea.containsMouse ? "Double-click to play" : "Song"
+                                            color: isCurrent ? "black" : "#b3b3b3"
+                                            font.pointSize: 11
+                                            font.family: "Arial"
+                                            font.weight: Font.Normal
+
+                                            Behavior on color { ColorAnimation { duration: 200 } }
                                         }
 
                                         Item { Layout.fillWidth: true }
@@ -535,50 +684,53 @@ ApplicationWindow {
                                         // Duration if available
                                         Text {
                                             text: duration > 0 ? formatTime(duration) : "--:--"
-                                            color: isCurrent ? "#e8f5e8" : "#b3b3b3"
-                                            font.pointSize: 10
-                                            font.weight: Font.Medium
+                                            color: isCurrent ? "black" : "#b3b3b3"
+                                            font.pointSize: 12
+                                            font.family: "Arial"
+                                            font.weight: Font.Normal
                                         }
                                     }
                                 }
 
-                                // Play indicator - enhanced
+                                // Play indicator - Spotify style
                                 Rectangle {
-                                    width: 28
-                                    height: 28
-                                    radius: 14
-                                    color: "white"
+                                    width: 32
+                                    height: 32
+                                    radius: 16
+                                    color: "black"
                                     visible: isCurrent && audioManager.isPlaying
-                                    
+
                                     Text {
                                         anchors.centerIn: parent
                                         text: "♪"
                                         color: "#1db954"
-                                        font.pointSize: 12
+                                        font.pointSize: 16
+                                        font.family: "Arial"
                                         font.weight: Font.Bold
                                     }
 
                                     SequentialAnimation on opacity {
                                         loops: Animation.Infinite
                                         running: parent.visible
-                                        NumberAnimation { to: 0.5; duration: 1000 }
-                                        NumberAnimation { to: 1.0; duration: 1000 }
+                                        NumberAnimation { to: 0.6; duration: 800 }
+                                        NumberAnimation { to: 1.0; duration: 800 }
                                     }
                                 }
 
                                 // Static status for paused tracks
                                 Rectangle {
-                                    width: 28
-                                    height: 28
-                                    radius: 14
-                                    color: "#666666"
+                                    width: 32
+                                    height: 32
+                                    radius: 16
+                                    color: "black"
                                     visible: isCurrent && !audioManager.isPlaying
-                                    
+
                                     Text {
                                         anchors.centerIn: parent
-                                        text: "⏸"
-                                        color: "white"
-                                        font.pointSize: 10
+                                        text: "| |"
+                                        color: "#1db954"
+                                        font.pointSize: 12
+                                        font.family: "Arial"
                                         font.weight: Font.Bold
                                     }
                                 }
@@ -587,7 +739,7 @@ ApplicationWindow {
                     }
                 }
 
-                // Empty state
+                // Empty state - Spotify style
                 Item {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
@@ -595,28 +747,63 @@ ApplicationWindow {
 
                     Column {
                         anchors.centerIn: parent
+                        anchors.verticalCenterOffset: -70
                         spacing: 16
 
                         Text {
                             text: "🎵"
                             font.pointSize: 48
-                            color: "#666666"
+                            font.family: "Arial"
+                            color: "#535353"
                             anchors.horizontalCenter: parent.horizontalCenter
                         }
 
                         Text {
                             text: "Your playlist is empty"
-                            color: "#888888"
+                            color: "white"
                             font.pointSize: 18
-                            font.weight: Font.Medium
+                            font.family: "Arial"
+                            font.weight: Font.Bold
                             anchors.horizontalCenter: parent.horizontalCenter
                         }
 
                         Text {
-                            text: "Click \"Add to Playlist\" to get started"
-                            color: "#666666"
-                            font.pointSize: 14
+                            text: "Add some tracks to get the party started"
+                            color: "#b3b3b3"
+                            font.pointSize: 12
+                            font.family: "Arial"
+                            font.weight: Font.Normal
                             anchors.horizontalCenter: parent.horizontalCenter
+                        }
+
+                        Button {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            width: 160
+                            height: 48
+                            flat: true
+                            focusPolicy: Qt.NoFocus
+                            down: false
+
+                            background: Rectangle {
+                                radius: 24
+                                color: parent.hovered ? "#1ed760" : "#1db954"
+
+                                Behavior on color { ColorAnimation { duration: 150 } }
+                            }
+
+                            hoverEnabled: true
+
+                            contentItem: Text {
+                                text: "Browse files"
+                                color: "black"
+                                font.pointSize: 14
+                                font.family: "Arial"
+                                font.weight: Font.Bold
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                            }
+
+                            onClicked: playlistFileDialog.open()
                         }
                     }
                 }
@@ -653,43 +840,50 @@ ApplicationWindow {
         id: errorDialog
         title: "Error"
         property alias text: errorText.text
-        
+
         background: Rectangle {
-            color: "#333333"
+            color: "#181818"
             radius: 12
-            border.color: "#d32f2f"
-            border.width: 2
+            border.color: "#e22134"
+            border.width: 1
         }
 
         Text {
             id: errorText
-            color: "#f44336"
-            font.pointSize: 12
+            color: "#ff6b6b"
+            font.pointSize: 13
+            font.family: "Arial"
+            font.weight: Font.Normal
             wrapMode: Text.WordWrap
-            width: 300
+            width: 320
         }
 
         standardButtons: Dialog.Ok
     }
 
-    // Loading overlay
+    // Loading overlay - Spotify style
     Rectangle {
         anchors.fill: parent
-        color: "#80000000"
+        color: "#aa000000"
         visible: audioManager.isLoading
 
         Rectangle {
             anchors.centerIn: parent
-            width: 300
-            height: 120
+            width: 320
+            height: 140
             radius: 16
-            color: "#333333"
-            border.color: "#1db954"
-            border.width: 2
+            color: "#181818"
+
+            Rectangle {
+                anchors.fill: parent
+                color: "#282828"
+                opacity: 0.3
+                radius: 16
+            }
 
             Column {
                 anchors.centerIn: parent
-                spacing: 16
+                spacing: 20
 
                 BusyIndicator {
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -699,9 +893,10 @@ ApplicationWindow {
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: audioManager.loadingStatus
-                    color: "#ffffff"
-                    font.pointSize: 14
-                    font.weight: Font.Medium
+                    color: "white"
+                    font.pointSize: 16
+                    font.family: "Arial"
+                    font.weight: Font.Normal
                 }
             }
         }
