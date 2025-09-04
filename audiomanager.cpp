@@ -223,6 +223,22 @@ void AudioManager::stop() {
     }
 }
 
+void AudioManager::seek(double position) {
+    if (!player_) {
+        qDebug() << "Cannot seek: player not initialized";
+        return;
+    }
+    
+    // Clamp position between 0.0 and 1.0
+    position = std::max(0.0, std::min(1.0, position));
+    
+    player_->seek(position);
+    progress_ = position;
+    
+    emit progressChanged();
+    qDebug() << "Seeking to position:" << position;
+}
+
 QStringList AudioManager::getAudioDevices() {
     return player_ ? player_->getAvailableDevices() : QStringList();
 }

@@ -44,6 +44,7 @@ public:
     Q_INVOKABLE void playNext();
     Q_INVOKABLE void playPrevious();
     Q_INVOKABLE void playTrackAt(int index);
+    Q_INVOKABLE void seek(double position);
     Q_INVOKABLE QStringList getAudioDevices();
     Q_INVOKABLE QStringList getSupportedFormats();
 

@@ -108,6 +108,23 @@ double AudioPlayer::getProgress() const {
     return static_cast<double>(currentFrame_) / audioData_.totalFrames;
 }
 
+void AudioPlayer::seek(double position) {
+    if (!audioData_.isValid()) {
+        return;
+    }
+    
+    // Clamp position between 0.0 and 1.0
+    position = std::max(0.0, std::min(1.0, position));
+    
+    // Calculate the target frame
+    size_t targetFrame = static_cast<size_t>(position * audioData_.totalFrames);
+    
+    // Update current frame position
+    currentFrame_ = targetFrame;
+    
+    qDebug() << "Seeking to position:" << position << "frame:" << targetFrame;
+}
+
 QStringList AudioPlayer::getAvailableDevices() const {
     QStringList devices;
 

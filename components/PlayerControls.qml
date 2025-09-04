@@ -81,38 +81,94 @@ RowLayout {
             font.family: "Arial"
         }
 
-        Rectangle {
+        Item {
             Layout.fillWidth: true
             height: 5
-            color: "#404040"
-            radius: 2.5
-
+            
+            property bool isDragging: false
+            property double seekPosition: 0.0
+            
             Rectangle {
-                width: parent.width * audioManager.progress
-                height: parent.height
+                id: trackBackground
+                anchors.fill: parent
+                color: "#404040"
                 radius: 2.5
-                color: "#1db954"
-
-                Behavior on width {
-                    NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
+                
+                Rectangle {
+                    id: progressBar
+                    width: parent.width * (parent.isDragging ? parent.seekPosition : audioManager.progress)
+                    height: parent.height
+                    radius: 2.5
+                    color: "#1db954"
+                    
+                    Behavior on width {
+                        enabled: !parent.isDragging
+                        NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
+                    }
+                }
+                
+                Rectangle {
+                    id: handle
+                    width: 12
+                    height: 12
+                    radius: 6
+                    color: "white"
+                    x: Math.max(0, Math.min(parent.width - width, 
+                        (parent.isDragging ? parent.seekPosition : audioManager.progress) * parent.width - width/2))
+                    y: -3.5
+                    visible: audioManager.duration > 0
+                    
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: 8
+                        height: 8
+                        radius: 4
+                        color: "#1db954"
+                    }
+                    
+                    Behavior on x {
+                        enabled: !parent.isDragging
+                        NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
+                    }
                 }
             }
-
-            Rectangle {
-                width: 12
-                height: 12
-                radius: 6
-                color: "white"
-                x: Math.max(0, Math.min(parent.width - width, parent.width * audioManager.progress - width/2))
-                y: -3.5
-                visible: audioManager.duration > 0
-
-                Rectangle {
-                    anchors.centerIn: parent
-                    width: 8
-                    height: 8
-                    radius: 4
-                    color: "#1db954"
+            
+            MouseArea {
+                id: mouseArea
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                
+                property bool wasDragging: false
+                
+                onPressed: {
+                    if (audioManager.duration > 0) {
+                        parent.isDragging = true
+                        parent.seekPosition = Math.max(0, Math.min(1, mouseX / width))
+                        mouseArea.wasDragging = false
+                    }
+                }
+                
+                onPositionChanged: {
+                    if (parent.isDragging && audioManager.duration > 0) {
+                        parent.seekPosition = Math.max(0, Math.min(1, mouseX / width))
+                        mouseArea.wasDragging = true
+                    }
+                }
+                
+                onReleased: {
+                    if (parent.isDragging && audioManager.duration > 0) {
+                        audioManager.seek(parent.seekPosition)
+                        parent.isDragging = false
+                        mouseArea.wasDragging = false
+                    }
+                }
+                
+                onClicked: {
+                    if (!mouseArea.wasDragging && audioManager.duration > 0) {
+                        var position = Math.max(0, Math.min(1, mouseX / width))
+                        audioManager.seek(position)
+                    }
                 }
             }
         }

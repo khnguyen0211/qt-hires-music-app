@@ -31,6 +31,7 @@ public:
     PlaybackState getState() const { return state_; }
     double getProgress() const;
     double getDuration() const { return audioData_.getDuration(); }
+    void seek(double position);
     QStringList getAvailableDevices() const;
 
     bool isInitialized() const { return initialized_; }
