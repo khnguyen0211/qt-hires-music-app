@@ -52,6 +52,13 @@ qt_add_qml_module(appHiResMusicApp
     VERSION 1.0
     QML_FILES
         Main.qml
+        components/Header.qml
+        components/PlayerControls.qml
+        components/PlaybackButtons.qml
+        components/LoadButtons.qml
+        components/PlaylistView.qml
+        components/ErrorDialog.qml
+        components/LoadingOverlay.qml
 )
 
 # Include PortAudio headers
