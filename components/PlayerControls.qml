@@ -87,6 +87,7 @@ RowLayout {
             
             property bool isDragging: false
             property double seekPosition: 0.0
+            property bool wasPlayingBeforeDrag: false
             
             Rectangle {
                 id: trackBackground
@@ -109,27 +110,89 @@ RowLayout {
                 
                 Rectangle {
                     id: handle
-                    width: 12
-                    height: 12
-                    radius: 6
+                    width: parent.isDragging ? 16 : 12
+                    height: parent.isDragging ? 16 : 12
+                    radius: width / 2
                     color: "white"
                     x: Math.max(0, Math.min(parent.width - width, 
                         (parent.isDragging ? parent.seekPosition : audioManager.progress) * parent.width - width/2))
-                    y: -3.5
+                    y: parent.isDragging ? -5.5 : -3.5
                     visible: audioManager.duration > 0
+                    opacity: parent.isDragging ? 1.0 : (mouseArea.containsMouse ? 1.0 : 0.8)
+                    
+                    // Drop shadow when dragging
+                    Rectangle {
+                        anchors.centerIn: parent
+                        anchors.topMargin: parent.isDragging ? 2 : 0
+                        width: parent.width
+                        height: parent.height
+                        radius: width / 2
+                        color: "black"
+                        opacity: parent.isDragging ? 0.3 : 0.0
+                        z: -1
+                        
+                        Behavior on opacity { NumberAnimation { duration: 150 } }
+                        Behavior on anchors.topMargin { NumberAnimation { duration: 150 } }
+                    }
                     
                     Rectangle {
                         anchors.centerIn: parent
-                        width: 8
-                        height: 8
-                        radius: 4
+                        width: parent.isDragging ? 10 : 8
+                        height: parent.isDragging ? 10 : 8
+                        radius: width / 2
                         color: "#1db954"
+                        
+                        Behavior on width { NumberAnimation { duration: 150 } }
+                        Behavior on height { NumberAnimation { duration: 150 } }
                     }
                     
                     Behavior on x {
                         enabled: !parent.isDragging
                         NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
                     }
+                    
+                    Behavior on width { NumberAnimation { duration: 150 } }
+                    Behavior on height { NumberAnimation { duration: 150 } }
+                    Behavior on y { NumberAnimation { duration: 150 } }
+                    Behavior on opacity { NumberAnimation { duration: 150 } }
+                }
+                
+                // Scrub tooltip
+                Rectangle {
+                    id: scrubTooltip
+                    visible: parent.isDragging
+                    width: scrubText.implicitWidth + 12
+                    height: scrubText.implicitHeight + 8
+                    color: "#333333"
+                    radius: 4
+                    opacity: 0.9
+                    
+                    x: Math.max(4, Math.min(parent.width - width - 4, 
+                        parent.seekPosition * parent.width - width/2))
+                    y: -height - 12
+                    
+                    Text {
+                        id: scrubText
+                        anchors.centerIn: parent
+                        color: "white"
+                        font.pointSize: 10
+                        font.family: "Arial"
+                        font.weight: Font.Bold
+                        text: formatTime(parent.seekPosition * audioManager.duration)
+                    }
+                    
+                    // Small arrow pointing down
+                    Rectangle {
+                        width: 6
+                        height: 6
+                        color: parent.color
+                        rotation: 45
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.top: parent.bottom
+                        anchors.topMargin: -3
+                    }
+                    
+                    Behavior on x { NumberAnimation { duration: 50 } }
                 }
             }
             
@@ -137,38 +200,72 @@ RowLayout {
                 id: mouseArea
                 anchors.fill: parent
                 hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
+                cursorShape: parent.isDragging ? Qt.ClosedHandCursor : Qt.PointingHandCursor
                 
                 property bool wasDragging: false
+                property bool isDragActive: false
+                property real startMouseX: 0
                 
                 onPressed: {
                     if (audioManager.duration > 0) {
+                        isDragActive = true
+                        startMouseX = mouseX
                         parent.isDragging = true
                         parent.seekPosition = Math.max(0, Math.min(1, mouseX / width))
-                        mouseArea.wasDragging = false
+                        wasDragging = false
+                        
+                        // Lưu trạng thái và pause audio nếu đang phát
+                        parent.wasPlayingBeforeDrag = audioManager.isPlaying
+                        if (audioManager.isPlaying) {
+                            audioManager.pause()
+                        }
                     }
                 }
                 
                 onPositionChanged: {
-                    if (parent.isDragging && audioManager.duration > 0) {
-                        parent.seekPosition = Math.max(0, Math.min(1, mouseX / width))
-                        mouseArea.wasDragging = true
+                    if (isDragActive && audioManager.duration > 0) {
+                        // Calculate new position (chỉ update UI, không seek)
+                        var newPosition = Math.max(0, Math.min(1, mouseX / width))
+                        parent.seekPosition = newPosition
+                        
+                        // Mark as dragging if moved significantly from start position
+                        if (Math.abs(mouseX - startMouseX) > 3) {
+                            wasDragging = true
+                            // Không seek trong lúc drag để tránh tiếng ồn
+                        }
                     }
                 }
                 
                 onReleased: {
-                    if (parent.isDragging && audioManager.duration > 0) {
+                    if (isDragActive && audioManager.duration > 0) {
+                        // Seek to final position
                         audioManager.seek(parent.seekPosition)
+                        
+                        // Khôi phục audio nếu đang phát trước khi drag
+                        if (parent.wasPlayingBeforeDrag) {
+                            audioManager.play()
+                        }
+                        
+                        // Reset drag state
                         parent.isDragging = false
-                        mouseArea.wasDragging = false
+                        isDragActive = false
+                        wasDragging = false
+                        parent.wasPlayingBeforeDrag = false
                     }
                 }
                 
+                // Handle click vs drag distinction
                 onClicked: {
-                    if (!mouseArea.wasDragging && audioManager.duration > 0) {
+                    // Only handle click if it wasn't a drag operation
+                    if (!wasDragging && audioManager.duration > 0) {
                         var position = Math.max(0, Math.min(1, mouseX / width))
                         audioManager.seek(position)
                     }
+                }
+                
+                // Prevent context menu
+                onPressAndHold: {
+                    // Do nothing to prevent context menu
                 }
             }
         }
