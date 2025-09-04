@@ -1,4 +1,5 @@
 #include "track.h"
+#include "audio_decoder.h"
 #include <QUrl>
 
 Track::Track(QObject* parent)
@@ -39,9 +40,11 @@ void Track::updateFromFilePath() {
         title_.clear();
         fileName_.clear();
         extension_.clear();
+        duration_ = 0.0;
         emit titleChanged();
         emit fileNameChanged();
         emit extensionChanged();
+        emit durationChanged();
         return;
     }
 
@@ -63,5 +66,13 @@ void Track::updateFromFilePath() {
     if (extension_ != newExtension) {
         extension_ = newExtension;
         emit extensionChanged();
+    }
+    
+    // Tính duration ngay khi update file path
+    double newDuration = AudioDecoder::getAudioDuration(filePath_);
+    if (duration_ != newDuration) {
+        duration_ = newDuration;
+        emit durationChanged();
+        qDebug() << "Track duration calculated:" << filePath_ << "→" << newDuration << "seconds";
     }
 }

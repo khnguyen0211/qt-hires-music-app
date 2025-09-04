@@ -179,3 +179,30 @@ const QStringList& AudioDecoder::supportedExtensions() {
     };
     return extensions;
 }
+
+double AudioDecoder::getAudioDuration(const QString& filePath) {
+    if (!QFileInfo::exists(filePath)) {
+        qDebug() << "File does not exist:" << filePath;
+        return 0.0;
+    }
+
+    QString extension = QFileInfo(filePath).suffix().toLower();
+    
+    // Chỉ load minimal data để tính duration, không load toàn bộ samples
+    AudioData tempData;
+    
+    if (extension == "wav") {
+        // Có thể optimize để chỉ đọc header WAV
+        if (loadWavFile(filePath, tempData)) {
+            return tempData.getDuration();
+        }
+    } else if (isFfmpegAvailable()) {
+        // Sử dụng FFmpeg để get duration nhanh hơn
+        if (loadWithFfmpeg(filePath, tempData)) {
+            return tempData.getDuration();
+        }
+    }
+    
+    qDebug() << "Failed to get duration for:" << filePath;
+    return 0.0;
+}

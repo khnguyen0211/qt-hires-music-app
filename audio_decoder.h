@@ -35,6 +35,7 @@ public:
     static QStringList getSupportedFormats();
     static bool isFormatSupported(const QString& extension);
     static bool loadAudioFile(const QString& filePath, AudioData& audioData);
+    static double getAudioDuration(const QString& filePath);
 
 private:
     static bool loadWavFile(const QString& filePath, AudioData& audioData);
