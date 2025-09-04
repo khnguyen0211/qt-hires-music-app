@@ -89,6 +89,15 @@ RowLayout {
             property double seekPosition: 0.0
             property bool wasPlayingBeforeDrag: false
             
+            // Force property change notifications
+            onSeekPositionChanged: {
+                console.log("seekPosition changed to:", seekPosition)
+            }
+            
+            onIsDraggingChanged: {
+                console.log("isDragging changed to:", isDragging)
+            }
+            
             Rectangle {
                 id: trackBackground
                 anchors.fill: parent
@@ -101,6 +110,9 @@ RowLayout {
                     height: parent.height
                     radius: 2.5
                     color: "#1db954"
+                    
+                    // Debug width changes
+                    onWidthChanged: console.log("Progress bar width changed:", width, "isDragging:", parent.isDragging, "seekPos:", parent.seekPosition, "audioPos:", audioManager.progress)
                     
                     Behavior on width {
                         enabled: !parent.isDragging
@@ -157,43 +169,6 @@ RowLayout {
                     Behavior on opacity { NumberAnimation { duration: 150 } }
                 }
                 
-                // Scrub tooltip
-                Rectangle {
-                    id: scrubTooltip
-                    visible: parent.isDragging
-                    width: scrubText.implicitWidth + 12
-                    height: scrubText.implicitHeight + 8
-                    color: "#333333"
-                    radius: 4
-                    opacity: 0.9
-                    
-                    x: Math.max(4, Math.min(parent.width - width - 4, 
-                        parent.seekPosition * parent.width - width/2))
-                    y: -height - 12
-                    
-                    Text {
-                        id: scrubText
-                        anchors.centerIn: parent
-                        color: "white"
-                        font.pointSize: 10
-                        font.family: "Arial"
-                        font.weight: Font.Bold
-                        text: formatTime(parent.seekPosition * audioManager.duration)
-                    }
-                    
-                    // Small arrow pointing down
-                    Rectangle {
-                        width: 6
-                        height: 6
-                        color: parent.color
-                        rotation: 45
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        anchors.top: parent.bottom
-                        anchors.topMargin: -3
-                    }
-                    
-                    Behavior on x { NumberAnimation { duration: 50 } }
-                }
             }
             
             MouseArea {
@@ -214,6 +189,9 @@ RowLayout {
                         parent.seekPosition = Math.max(0, Math.min(1, mouseX / width))
                         wasDragging = false
                         
+                        // Debug press
+                        console.log("PRESSED - seekPosition set to:", parent.seekPosition, "mouseX:", mouseX, "width:", width)
+                        
                         // Lưu trạng thái và pause audio nếu đang phát
                         parent.wasPlayingBeforeDrag = audioManager.isPlaying
                         if (audioManager.isPlaying) {
@@ -224,15 +202,18 @@ RowLayout {
                 
                 onPositionChanged: {
                     if (isDragActive && audioManager.duration > 0) {
-                        // Calculate new position (chỉ update UI, không seek)
+                        // Update seekPosition NGAY LẬP TỨC cho real-time UI
                         var newPosition = Math.max(0, Math.min(1, mouseX / width))
                         parent.seekPosition = newPosition
                         
-                        // Mark as dragging if moved significantly from start position
+                        // Debug log
+                        console.log("Drag position:", newPosition, "mouseX:", mouseX, "width:", width)
+                        
+                        // Mark as dragging chỉ để phân biệt với click
                         if (Math.abs(mouseX - startMouseX) > 3) {
                             wasDragging = true
-                            // Không seek trong lúc drag để tránh tiếng ồn
                         }
+                        // KHÔNG seek audio trong lúc drag để tránh tiếng ồn
                     }
                 }
                 

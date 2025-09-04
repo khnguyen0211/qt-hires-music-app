@@ -71,6 +71,9 @@ void PlaylistManager::addTrack(const QString& filePath) {
     }
 
     qDebug() << "Track added:" << filePath;
+    
+    // Emit currentIndexChanged to update hasNext/hasPrevious properties
+    emit currentIndexChanged();
 }
 
 void PlaylistManager::addTracks(const QStringList& filePaths) {
@@ -106,6 +109,9 @@ void PlaylistManager::addTracks(const QStringList& filePaths) {
     }
     
     qDebug() << "Added" << filePaths.size() << "tracks. Current index:" << currentIndex_ << "Track count:" << tracks_.size();
+    
+    // Emit currentIndexChanged to update hasNext/hasPrevious properties
+    emit currentIndexChanged();
 }
 
 void PlaylistManager::removeTrack(int index) {
