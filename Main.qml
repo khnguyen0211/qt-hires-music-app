@@ -10,6 +10,7 @@ ApplicationWindow {
     width: 1000
     height: 750
     visible: true
+    visibility: Window.FullScreen
     title: "Hi-Res Music Player"
     color: "black"
 

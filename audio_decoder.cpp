@@ -12,7 +12,7 @@ QStringList AudioDecoder::getSupportedFormats() {
     QStringList formats;
     
     if (isFfmpegAvailable()) {
-        formats << "All Audio Files (*.wav *.mp3 *.flac *.m4a *.m4r *.aac *.ac3 *.aif *.alac *.ogg *.opus *.wma)"
+        formats << "All Audio Files"
                 << "WAV Files (*.wav)"
                 << "MP3 Files (*.mp3)" 
                 << "FLAC Files (*.flac)"
@@ -188,16 +188,13 @@ double AudioDecoder::getAudioDuration(const QString& filePath) {
 
     QString extension = QFileInfo(filePath).suffix().toLower();
     
-    // Chỉ load minimal data để tính duration, không load toàn bộ samples
     AudioData tempData;
     
     if (extension == "wav") {
-        // Có thể optimize để chỉ đọc header WAV
         if (loadWavFile(filePath, tempData)) {
             return tempData.getDuration();
         }
     } else if (isFfmpegAvailable()) {
-        // Sử dụng FFmpeg để get duration nhanh hơn
         if (loadWithFfmpeg(filePath, tempData)) {
             return tempData.getDuration();
         }

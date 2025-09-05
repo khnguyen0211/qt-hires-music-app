@@ -181,7 +181,6 @@ void AudioManager::play() {
         return;
     }
 
-    // Nếu chưa có track nào được load, thử load track đầu tiên trong playlist
     if (currentFile_.isEmpty() && playlistManager_->trackCount() > 0) {
         qDebug() << "No current track, loading first track from playlist";
         if (!loadCurrentTrack()) {
@@ -190,7 +189,6 @@ void AudioManager::play() {
         }
     }
 
-    // Kiểm tra nếu vẫn không có audio data
     if (currentFile_.isEmpty()) {
         emit errorOccurred("No audio file loaded. Please load a file first.");
         return;

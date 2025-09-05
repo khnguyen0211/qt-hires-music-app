@@ -68,7 +68,6 @@ void Track::updateFromFilePath() {
         emit extensionChanged();
     }
     
-    // Tính duration ngay khi update file path
     double newDuration = AudioDecoder::getAudioDuration(filePath_);
     if (duration_ != newDuration) {
         duration_ = newDuration;
